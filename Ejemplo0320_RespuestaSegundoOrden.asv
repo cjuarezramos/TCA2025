@@ -1,0 +1,16 @@
+% Autor: Carlos Juarez
+% Fecha: 20/03/25
+% Descripción: Respuesta del sistema segundo orden.
+
+% Función de transferencia de lazo cerrado
+wn = 10*pi; % Frecuencia natural no amortiguada
+Z = 0.2; % Factor de amortiguamiento relativo
+
+num = wn^2;
+den =[1,2*Z*wn,wn^2];
+T = tf(num,den)
+
+figure(1)
+step(T)
+xlim([0,1])
+
