@@ -1,0 +1,63 @@
+% compensador en atraso
+% ejemplo G = 1.06/(s(s+1)(s+2))
+% Kv requerida = 5
+FTLA_o = tf(1.06,conv([1,0],conv([1,1],[1,2])))
+FTLC_o = feedback(FTLA_o,1)
+polos_o = roots(FTLC_o.Denominator{1})
+
+% Calculo de Z
+ecu = conv([1,-polos_o(2)],[1,-polos_o(3)])
+Z = ecu(2)/2/sqrt(ecu(3))
+wn = sqrt(ecu(3))
+
+% Respuesta al escalòn del sistema original
+figure(1)
+step(FTLC_o)
+
+% Respuesta a la rampa
+t = 0:0.1:20;
+y = lsim(FTLC_o,t,t);
+plot(t,t,t,y)
+% Calculo de Beta
+Kv_original = 0.53
+Kv_nuevo = 5
+B = ceil(Kv_nuevo/Kv_original)
+% compensador
+syms s
+gc = (s+0.05)/(s+0.05/B)
+angulo_gc = double(angle(subs(gc,s,polos_o(2))))*180/pi
+
+
+% Lugar de las raíces
+sz = 0.05
+Gc = tf([1,sz],[1,sz/B])
+%LGR original
+figure(2)
+rlocus(FTLA_o)
+% LGR con compensador en atraso
+
+figure(2)
+hold on
+rlocus(Gc*FTLA_o)
+
+K = 0.80:0.01:1.1;
+figure(3)
+rlocus(FTLA_o*Gc,K)
+% Damping de 0.5
+Kc = 0.95
+
+Kv_n = Kc*B*Kv_original
+
+FTLC_n = feedback(Gc*Kc*FTLA_o,1)
+
+figure(1)
+hold on
+y2 = lsim(FTLC_n,t,t);
+plot(t,y2)
+
+
+% respuesta al escalon
+figure(4)
+ys1 = step(FTLC_o,t);
+ys2 = step(FTLC_n,t);
+plot(t,ys1,t,ys2)
